@@ -82,6 +82,29 @@ class Installer(object):
                     }
                 ]
 
+                # FIXME: this hack allows us to use xobs' toolchain, temporarily; it should be removed
+                # and we should ship our own toolchain
+
+                # Allow "macos" as a valid platform name, as well as Darwin.
+                # If that's used, also allow .zip files in place of tgzs. This is a hack.
+                if platform.startswith('darwin'):
+                    self.download_urls.append({
+                        'url': self.get_download_url(data, 'macos'),
+                        'platform': 'macos'
+                    })
+                    self.download_urls.append({
+                        'url': self.get_download_url(data, 'macos').replace('tar.gz', 'zip'),
+                        'platform': 'macos'
+                    })
+
+                # Similar hack for Windows.
+                if platform.startswith('windows'):
+                    self.download_urls.append({
+                        'url': self.get_download_url(data, 'windows').replace('tar.gz', 'zip'),
+                        'platform': 'macos'
+                    })
+
+
         if self.packages_dir == '':
             click.secho(
                 'Error: no such package \'{}\''.format(self.package),
@@ -118,17 +141,43 @@ class Installer(object):
             makedirs(self.packages_dir)
         assert isdir(self.packages_dir)
         dlpath = None
-        try:
-            # Try full platform
-            platform_download_url = self.download_urls[0].get('url')
-            dlpath = self._download(platform_download_url)
-        except IOError as e:
-            click.secho('Warning: permission denied in packages directory',
-                        fg='yellow')
-            click.secho(str(e), fg='red')
-        except Exception:
-            # Try os name
-            dlpath = self._install_os_package(platform_download_url)
+
+        platform_download_url = self.download_urls[0].get('url')
+
+        for info in self.download_urls:
+            try:
+                # Try full platform
+                download_url      = info.get('url')
+                download_platform = info.get('platform')
+
+                dlpath = self._download(download_url)
+
+                # If this succeeded, but returned a None download path, nothing is necessary. Return.
+                if dlpath is None:
+                    return
+            except IOError as e:
+                click.secho('Warning: permission denied in packages directory',
+                            fg='yellow')
+                click.secho(str(e), fg='red')
+            except Exception:
+                continue
+
+        # If we couldn't figure out a download path, fail out.
+        if dlpath is None:
+            click.secho(
+                'Error: package not availabe for this platform',
+                fg='red')
+            return
+
+        if download_url != platform_download_url:
+            click.secho(
+                'Warning: full platform does not match: {}\
+                '.format(self.download_urls[0].get('platform')),
+                fg='yellow')
+            click.secho(
+                '         Installed package for OS name: {}\
+                '.format(download_platform),
+                fg='yellow')
 
         # Install downloaded package
         self._install_package(dlpath)
@@ -136,27 +185,6 @@ class Installer(object):
         # Rename unpacked dir to package dir
         self._rename_unpacked_dir()
 
-    def _install_os_package(self, platform_download_url):
-        os_download_url = self.download_urls[1].get('url')
-        if platform_download_url != os_download_url:
-            click.secho(
-                'Warning: full platform does not match: {}\
-                '.format(self.download_urls[0].get('platform')),
-                fg='yellow')
-            click.secho(
-                '         Trying OS name: {}\
-                '.format(self.download_urls[1].get('platform')),
-                fg='yellow')
-            try:
-                return self._download(os_download_url)
-            except Exception as e:
-                click.secho(
-                    'Error: {}'.format(str(e)),
-                    fg='red')
-        else:
-            click.secho(
-                'Error: package not availabe for this platform',
-                fg='red')
 
     def _install_package(self, dlpath):
         if dlpath:

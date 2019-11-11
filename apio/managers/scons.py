@@ -190,13 +190,14 @@ class SCons(object):
 
         programmer = content.get('command')
 
+        # Add extra arguments first, as some programmers args (e.g. dfu-util)
+        # specify an argument just prior to the upload filename.
+        if prog_info.get('extra_args'):
+            programmer += ' {}'.format(prog_info.get('extra_args'))
+
         # Add args
         if content.get('args'):
             programmer += ' {}'.format(content.get('args'))
-
-        # Add extra args
-        if prog_info.get('extra_args'):
-            programmer += ' {}'.format(prog_info.get('extra_args'))
 
         # Enable SRAM programming
         if sram:

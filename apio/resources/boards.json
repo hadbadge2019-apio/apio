@@ -336,14 +336,12 @@
     "name": "Hackaday Superconference 2019 Badge",
     "fpga": "ECP5-LFE5U-45F-CABGA381",
     "programmer": {
-      "type": "tinyprog"
+      "type": "dfu-util",
+      "extra_args": "-a 'ECP5 bitstream (SoC)' -R"
     },
     "usb": {
       "vid": "1d50",
-      "pid": "6130"
-    },
-    "tinyprog": {
-      "desc": "TinyFPGA EX"
+      "pid": "614b"
     }
   }
 }

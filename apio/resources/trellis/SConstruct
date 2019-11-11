@@ -82,10 +82,10 @@ BASECFG_PATH = os.path.join(TRELLIS_PATH, 'basecfgs', 'empty_{0}-{1}.config'.for
 DATABASE_PATH = os.path.join(TRELLIS_PATH, 'database')
 CHIPDB_PATH = os.path.join(TRELLIS_PATH, 'chipdb-{0}.txt'.format(FPGA_SIZE))
 YOSYS_PATH = os.environ['YOSYS_LIB'] if 'YOSYS_LIB' in os.environ else ''
-if 'TRELLIS_PYTHONHOME' in os.environ:
-    os.environ['PYTHONHOME'] = os.environ['TRELLIS_PYTHONHOME']
-if 'TRELLIS_PYTHONPATH' in os.environ:
-    os.environ['PYTHONPATH'] = os.environ['TRELLIS_PYTHONPATH']
+#If 'TRELLIS_PYTHONHOME' in os.environ:
+#    os.environ['PYTHONHOME'] = os.environ['TRELLIS_PYTHONHOME']
+#If 'TRELLIS_PYTHONPATH' in os.environ:
+#    os.environ['PYTHONPATH'] = os.environ['TRELLIS_PYTHONPATH']
 
 isWindows = 'Windows' == system()
 VVP_PATH = '' if isWindows or not IVL_PATH else '-M "{0}"'.format(IVL_PATH)
@@ -130,6 +130,17 @@ except IndexError:
 SIMULNAME = ''
 TARGET_SIM = ''
 
+
+# -- Get the constraints file
+LPF = ''
+LPF_list = Glob('*.lpf')
+
+try:
+    LPF = LPF_list[0]
+except IndexError:
+    print('\n---> WARNING: no LPF file found (.lpf)\n')
+
+
 # clean
 if len(COMMAND_LINE_TARGETS) == 0:
     if testbench is not None:
@@ -170,9 +181,10 @@ synth = Builder(
     source_scanner=list_scanner)
 
 pnr = Builder(
-    action='nextpnr-ecp5 --{1} --package {2} --json $SOURCE --textcfg $TARGET  {4} '.format(
+    action='nextpnr-ecp5 --{1} --package {2} --json $SOURCE --textcfg $TARGET  {4} {5}'.format(
         FPGA_TYPE, FPGA_SIZE, FPGA_PACK.upper(), BASECFG_PATH,
-        '' if VERBOSE_ALL or VERBOSE_PNR else '-q'),
+        '' if VERBOSE_ALL or VERBOSE_PNR else '-q', 
+        '--lpf {}'.format(LPF) if LPF else ''),
     suffix='.config',
     src_suffix='.json')
 
@@ -201,7 +213,7 @@ config_out = env.PnR(TARGET, [json_out])
 bitstream = env.Bin(TARGET, config_out)
 svf = env.SVF(TARGET, config_out)
 
-build = env.Alias('build', svf)
+build = env.Alias('build', bitstream)
 AlwaysBuild(build)
 
 # -- Upload the bitstream into FPGA

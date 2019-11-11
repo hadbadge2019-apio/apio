@@ -264,13 +264,6 @@ def setup_environment():
     os.environ['VERLIB'] = safe_join(
         base_dirs.get('verilator'), 'share')
 
-
-    # Compute the location of the Python libraries that should be used by nextpnr,
-    # and place them in a variable that can be used by scons.
-    trellis_python_root = glob.glob(safe_join(base_dirs.get('trellis'), 'lib', 'python*'))[0]
-    os.environ['TRELLIS_PYTHONHOME'] = trellis_python_root
-    os.environ['TRELLIS_PYTHONPATH'] = trellis_python_root + ':'  + glob.glob(safe_join(trellis_python_root, 'plat*'))[0]
-
     return bin_dirs
 
 
