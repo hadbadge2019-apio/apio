@@ -331,5 +331,19 @@
     "ftdi": {
       "desc": "Lattice ECP5 Versa Board"
     }
+  },
+  "SuperconBadge19": {
+    "name": "Hackaday Superconference 2019 Badge",
+    "fpga": "ECP5-LFE5U-45F-CABGA381",
+    "programmer": {
+      "type": "tinyprog"
+    },
+    "usb": {
+      "vid": "1d50",
+      "pid": "6130"
+    },
+    "tinyprog": {
+      "desc": "TinyFPGA EX"
+    }
   }
 }

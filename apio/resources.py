@@ -115,25 +115,29 @@ class Resources(object):
         # Print table
         click.echo('\nSupported boards:\n')
 
-        BOARDLIST_TPL = ('{board:25} {fpga:30} {arch:<8} '
+        BOARDLIST_TPL = ('{board:25} {fpga:30} {toolchain:<12} '
                          '{type:<12} {size:<5} {pack:<10}')
         terminal_width, _ = click.get_terminal_size()
 
         click.echo('-' * terminal_width)
         click.echo(BOARDLIST_TPL.format(
             board=click.style('Board', fg='cyan'), fpga='FPGA',
-            arch='Arch', type='Type', size='Size', pack='Pack'))
+            toolchain='Toolchain', type='Type', size='Size', pack='Pack'))
         click.echo('-' * terminal_width)
 
         for board in self.boards:
             fpga = self.boards.get(board).get('fpga')
-            click.echo(BOARDLIST_TPL.format(
-                board=click.style(board, fg='cyan'),
-                fpga=fpga,
-                arch=self.fpgas.get(fpga).get('arch'),
-                type=self.fpgas.get(fpga).get('type'),
-                size=self.fpgas.get(fpga).get('size'),
-                pack=self.fpgas.get(fpga).get('pack')))
+            try:
+                click.echo(BOARDLIST_TPL.format(
+                    board=click.style(board, fg='cyan'),
+                    fpga=fpga,
+                    toolchain=self.fpgas.get(fpga).get('toolchain'),
+                    type=self.fpgas.get(fpga).get('type'),
+                    size=self.fpgas.get(fpga).get('size'),
+                    pack=self.fpgas.get(fpga).get('pack')))
+            except:
+                click.secho('Error parsing board {}!'.format(board), fg='red')
+                raise
 
         click.secho(BOARDS_MSG, fg='green')
 
@@ -148,7 +152,7 @@ class Resources(object):
 
         click.echo('-' * terminal_width)
         click.echo(FPGALIST_TPL.format(
-            fpga=click.style('FPGA', fg='cyan'), type='Type', arch='Arch',
+            fpga=click.style('FPGA', fg='cyan'), type='Type', toolchain='Arch',
             size='Size', pack='Pack'))
         click.echo('-' * terminal_width)
 

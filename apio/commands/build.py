@@ -21,9 +21,9 @@ if (sys.version_info > (3, 0)):
 @click.option('--fpga', type=unicode, metavar='fpga',
               help='Set the FPGA.')
 @click.option('--size', type=unicode, metavar='size',
-              help='Set the FPGA type (1k/8k).')
+              help='Set the FPGA size (ice40: 1k/8k; ecp5: 12, 25, 45, 85).')
 @click.option('--type', type=unicode, metavar='type',
-              help='Set the FPGA type (hx/lp).')
+              help='Set the FPGA type (ice40: hx/lp, ecp5: 3g, 5g).')
 @click.option('--pack', type=unicode, metavar='package',
               help='Set the FPGA package.')
 @click.option('-p', '--project-dir', type=unicode, metavar='path',

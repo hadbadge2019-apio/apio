@@ -12,6 +12,7 @@ import os
 import re
 import sys
 import jwt
+import glob
 import json
 import click
 import locale
@@ -214,7 +215,11 @@ def setup_environment():
         'icestorm': get_package_dir('toolchain-icestorm'),
         'iverilog': get_package_dir('toolchain-iverilog'),
         'verilator': get_package_dir('toolchain-verilator'),
-        'gtkwave': get_package_dir('tool-gtkwave')
+        'gtkwave': get_package_dir('tool-gtkwave'),
+
+        # FIXME: this 'glob' is because we're using xobs' toolchain-ecp5 rather than
+        # packaging our own
+        'trellis': glob.glob(safe_join(get_package_dir('toolchain-ecp5'), '*'))[0],
     }
     bin_dirs = {
         'scons': safe_join(base_dirs.get('scons'), 'script'),
@@ -222,7 +227,8 @@ def setup_environment():
         'icestorm': safe_join(base_dirs.get('icestorm'), 'bin'),
         'iverilog': safe_join(base_dirs.get('iverilog'), 'bin'),
         'verilator': safe_join(base_dirs.get('verilator'), 'bin'),
-        'gtkwave': safe_join(base_dirs.get('gtkwave'), 'bin')
+        'gtkwave': safe_join(base_dirs.get('gtkwave'), 'bin'),
+        'trellis': safe_join(base_dirs.get('trellis'), 'bin')
     }
 
     # Give the priority to the python packages installed with apio
@@ -231,12 +237,13 @@ def setup_environment():
         os.environ['PATH']
     ])
 
-    # Give the priority to the packages installed by apio
+    # Give the priority to the packages installed by apio.
     os.environ['PATH'] = os.pathsep.join([
         bin_dirs.get('system'),
         bin_dirs.get('icestorm'),
         bin_dirs.get('iverilog'),
         bin_dirs.get('verilator'),
+        bin_dirs.get('trellis'),
         os.environ['PATH']
     ])
 
@@ -256,6 +263,13 @@ def setup_environment():
         base_dirs.get('icestorm'), 'share', 'icebox')
     os.environ['VERLIB'] = safe_join(
         base_dirs.get('verilator'), 'share')
+
+
+    # Compute the location of the Python libraries that should be used by nextpnr,
+    # and place them in a variable that can be used by scons.
+    trellis_python_root = glob.glob(safe_join(base_dirs.get('trellis'), 'lib', 'python*'))[0]
+    os.environ['TRELLIS_PYTHONHOME'] = trellis_python_root
+    os.environ['TRELLIS_PYTHONPATH'] = trellis_python_root + ':'  + glob.glob(safe_join(trellis_python_root, 'plat*'))[0]
 
     return bin_dirs
 
@@ -291,8 +305,11 @@ def check_package(name, version, spec_version, path):
 
     # Check package path
     if not isdir(path):
+        print("A")
         show_package_path_error(name)
+        print("B")
         show_package_install_instructions(name)
+        print("C")
         return False
 
     # Check package version

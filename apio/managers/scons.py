@@ -44,7 +44,7 @@ class SCons(object):
         var, board, arch = process_arguments(None, self.resources)
         return self.run('verify', arch=arch, packages=['scons',
                                                        'iverilog',
-                                                       'yosys'])
+                                                       arch])
 
     @util.command
     def lint(self, args):
@@ -58,33 +58,29 @@ class SCons(object):
         })
         return self.run('lint', var, arch=arch, packages=['scons',
                                                           'verilator',
-                                                          'yosys'])
+                                                          arch])
 
     @util.command
     def sim(self):
         var, board, arch = process_arguments(None, self.resources)
-        return self.run('sim', arch=arch, packages=['scons', 'iverilog',
-                                                    'yosys', 'gtkwave'])
+        return self.run('sim', arch=arch, packages=['scons', 'iverilog', arch, 'gtkwave'])
 
     @util.command
     def build(self, args):
         var, board, arch = process_arguments(args, self.resources)
-        return self.run('build', var, board, arch, packages=['scons', 'yosys',
-                                                             arch])
+        return self.run('build', var, board, arch, packages=['scons', arch])
 
     @util.command
     def time(self, args):
         var, board, arch = process_arguments(args, self.resources)
-        return self.run('time', var, board, arch, packages=['scons', 'yosys',
-                                                            arch])
+        return self.run('time', var, board, arch, packages=['scons', arch])
 
     @util.command
     def upload(self, args, serial_port, ftdi_id, sram):
         var, board, arch = process_arguments(args, self.resources)
         programmer = self.get_programmer(board, serial_port, ftdi_id, sram)
         var += ['prog={0}'.format(programmer)]
-        return self.run('upload', var, board, arch, packages=['scons', 'yosys',
-                                                              arch])
+        return self.run('upload', var, board, arch, packages=['scons', arch])
 
     def get_programmer(self, board, ext_serial, ext_ftdi_id, sram):
         programmer = ''
@@ -111,6 +107,7 @@ class SCons(object):
                 pid = board_data.get('usb').get('pid')
                 programmer = programmer.replace('${PID}', pid)
 
+
             # Replace FTDI index
             if '${FTDI_ID}' in programmer:
                 self.check_usb(board, board_data)
@@ -120,13 +117,14 @@ class SCons(object):
             # TinyFPGA BX board is not detected in MacOS HighSierra
             if 'tinyprog' in board_data and 'darwin' in util.get_systype():
                 # In this case the serial check is ignored
-                return 'tinyprog --libusb --program'
+                    return 'tinyprog --libusb --program'
 
             # Replace Serial port
             if '${SERIAL_PORT}' in programmer:
                 self.check_usb(board, board_data)
                 device = self.get_serial_port(board, board_data, ext_serial)
                 programmer = programmer.replace('${SERIAL_PORT}', device)
+
 
         return programmer
 
@@ -231,6 +229,7 @@ class SCons(object):
                     fg='yellow')
             raise Exception('board ' + board + ' not connected')
 
+
     def get_serial_port(self, board, board_data, ext_serial_port):
         # Search Serial port by USB id
         device = self._check_serial(board, board_data, ext_serial_port)
@@ -333,6 +332,7 @@ class SCons(object):
                 raise Exception
         else:
             click.secho('Info: native config mode')
+
 
         # -- Execute scons
         return self._execute_scons(command, variables, board)

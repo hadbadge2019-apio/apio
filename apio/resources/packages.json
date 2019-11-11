@@ -116,5 +116,19 @@
       "extension": "tar.gz"
     },
     "description": "Verilator toolchain"
+  },
+  "trellis" : {
+    "repository": {
+      "name": "ecp5-toolchain",
+      "organization": "xobs"
+    },
+    "release": {
+      "tag_name": "v%V",
+      "compressed_name": "ecp5-toolchain-%P-v%V",
+      "uncompressed_name": "",
+      "package_name": "toolchain-ecp5",
+      "extension": "tar.gz"
+    },
+    "description": "Trellis ECP5 toolchain"
   }
 }

@@ -11,6 +11,8 @@ import os
 import re
 from platform import system
 
+print('using sconstruct file')
+
 from SCons.Script import (Builder, DefaultEnvironment, Default, AlwaysBuild,
                           GetOption, Exit, COMMAND_LINE_TARGETS, ARGUMENTS,
                           Variables, Help, Glob)
@@ -61,9 +63,9 @@ if 'build' in COMMAND_LINE_TARGETS or \
    'upload' in COMMAND_LINE_TARGETS or \
    'time' in COMMAND_LINE_TARGETS:
 
-    # print('FPGA_SIZE: {}'.format(FPGA_SIZE))
-    # print('FPGA_TYPE: {}'.format(FPGA_TYPE))
-    # print('FPGA_PACK: {}'.format(FPGA_PACK))
+    print('FPGA_SIZE: {}'.format(FPGA_SIZE))
+    print('FPGA_TYPE: {}'.format(FPGA_TYPE))
+    print('FPGA_PACK: {}'.format(FPGA_PACK))
 
     if 'upload' in COMMAND_LINE_TARGETS:
 
@@ -71,7 +73,7 @@ if 'build' in COMMAND_LINE_TARGETS or \
             print('Error: no programmer command found')
             Exit(1)
 
-        # print('PROG: {}'.format(PROG))
+        print('PROG: {}'.format(PROG))
 
 # -- Resources paths
 IVL_PATH = os.environ['IVL'] if 'IVL' in os.environ else ''
@@ -80,6 +82,10 @@ BASECFG_PATH = os.path.join(TRELLIS_PATH, 'basecfgs', 'empty_{0}-{1}.config'.for
 DATABASE_PATH = os.path.join(TRELLIS_PATH, 'database')
 CHIPDB_PATH = os.path.join(TRELLIS_PATH, 'chipdb-{0}.txt'.format(FPGA_SIZE))
 YOSYS_PATH = os.environ['YOSYS_LIB'] if 'YOSYS_LIB' in os.environ else ''
+if 'TRELLIS_PYTHONHOME' in os.environ:
+    os.environ['PYTHONHOME'] = os.environ['TRELLIS_PYTHONHOME']
+if 'TRELLIS_PYTHONPATH' in os.environ:
+    os.environ['PYTHONPATH'] = os.environ['TRELLIS_PYTHONPATH']
 
 isWindows = 'Windows' == system()
 VVP_PATH = '' if isWindows or not IVL_PATH else '-M "{0}"'.format(IVL_PATH)
@@ -164,21 +170,21 @@ synth = Builder(
     source_scanner=list_scanner)
 
 pnr = Builder(
-    action='nextpnr-ecp5 --{1} --package {2} --json $SOURCE --textcfg $TARGET --basecfg {3} {4} '.format(
-        FPGA_TYPE, FPGA_SIZE, FPGA_PACK, BASECFG_PATH,
+    action='nextpnr-ecp5 --{1} --package {2} --json $SOURCE --textcfg $TARGET  {4} '.format(
+        FPGA_TYPE, FPGA_SIZE, FPGA_PACK.upper(), BASECFG_PATH,
         '' if VERBOSE_ALL or VERBOSE_PNR else '-q'),
     suffix='.config',
     src_suffix='.json')
 
 bitstream = Builder(
-    action='ecppack --db {0} $SOURCE hardware.bit'.format(DATABASE_PATH),
+    action='ecppack $SOURCE hardware.bit',
     suffix='.bit',
     src_suffix='.config')
 
-bit_to_svf = Builder(
-    action='bit_to_svf.py hardware.bit $TARGET',
+svf = Builder(
+    action='ecppack $SOURCE --svf $TARGET',
     suffix='.svf',
-    src_suffix='.bit')
+    src_suffix='.config')
 
 time_rpt = Builder(
     action='echo Here comes time analysis $TARGET $SOURCE  > $TARGET',
@@ -187,13 +193,13 @@ time_rpt = Builder(
 
 # -- Build the environment
 env.Append(BUILDERS={
-    'Synth': synth, 'PnR': pnr, 'Bin': bitstream, 'SVF': bit_to_svf, 'Time': time_rpt})
+    'Synth': synth, 'PnR': pnr, 'Bin': bitstream, 'SVF': svf, 'Time': time_rpt})
 
 # -- Generate the bitstream
 json_out = env.Synth(TARGET, [src_synth])
 config_out = env.PnR(TARGET, [json_out])
 bitstream = env.Bin(TARGET, config_out)
-svf = env.SVF(TARGET, bitstream)
+svf = env.SVF(TARGET, config_out)
 
 build = env.Alias('build', svf)
 AlwaysBuild(build)

@@ -39,6 +39,7 @@ def cli(ctx, board, serial_port, ftdi_id, sram, project_dir,
 
     drivers = Drivers()
     drivers.pre_upload()
+    
     # Run scons
     exit_code = SCons(project_dir).upload({
         'board': board,

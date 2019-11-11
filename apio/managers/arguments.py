@@ -15,7 +15,7 @@ def process_arguments(args, resources):  # noqa
     # -- Check arguments
     if args is not None:
         var_board = args.get('board')
-        var_arch = args.get('arch')
+        var_toolchain = args.get('toolchain')
         var_fpga = args.get('fpga')
         var_size = args.get('size')
         var_type = args.get('type')
@@ -23,7 +23,7 @@ def process_arguments(args, resources):  # noqa
         var_verbose = args.get('verbose')
     else:
         var_board = None
-        var_arch = None
+        var_toolchain = None
         var_fpga = None
         var_size = None
         var_type = None
@@ -36,7 +36,7 @@ def process_arguments(args, resources):  # noqa
         if var_board in resources.boards:
             fpga = resources.boards.get(var_board).get('fpga')
             if fpga in resources.fpgas:
-                fpga_arch = resources.fpgas.get(fpga).get('arch')
+                fpga_toolchain = resources.fpgas.get(fpga).get('toolchain')
                 fpga_size = resources.fpgas.get(fpga).get('size')
                 fpga_type = resources.fpgas.get(fpga).get('type')
                 fpga_pack = resources.fpgas.get(fpga).get('pack')
@@ -101,7 +101,7 @@ def process_arguments(args, resources):  # noqa
             if isfile('apio.ini'):
                 click.secho('Info: ignore apio.ini board', fg='yellow')
             if var_fpga in resources.fpgas:
-                fpga_arch = resources.fpgas.get(var_fpga).get('arch')
+                fpga_toolchain = resources.fpgas.get(var_fpga).get('toolchain')
                 fpga_size = resources.fpgas.get(var_fpga).get('size')
                 fpga_type = resources.fpgas.get(var_fpga).get('type')
                 fpga_pack = resources.fpgas.get(var_fpga).get('pack')
@@ -147,10 +147,10 @@ def process_arguments(args, resources):  # noqa
                 # Unknown FPGA
                 raise Exception('unknown FPGA: {0}'.format(var_fpga))
         else:
-            if var_size and var_type and var_pack and var_arch:
+            if var_size and var_type and var_pack and var_toolchain:
                 if isfile('apio.ini'):
                     click.secho('Info: ignore apio.ini board', fg='yellow')
-                fpga_arch = var_arch
+                fpga_toolchain = var_toolchain
                 fpga_size = var_size
                 fpga_type = var_type
                 fpga_pack = var_pack
@@ -163,7 +163,7 @@ def process_arguments(args, resources):  # noqa
                         var_board = p.board
                         if var_board in resources.boards:
                             fpga = resources.boards.get(var_board).get('fpga')
-                            fpga_arch = resources.fpgas.get(fpga).get('arch')
+                            fpga_toolchain = resources.fpgas.get(fpga).get('toolchain')
                             fpga_size = resources.fpgas.get(fpga).get('size')
                             fpga_type = resources.fpgas.get(fpga).get('type')
                             fpga_pack = resources.fpgas.get(fpga).get('pack')
@@ -201,7 +201,7 @@ def process_arguments(args, resources):  # noqa
 
     # -- Build Scons variables list
     variables = format_vars({
-        'fpga_arch': fpga_arch,
+        'fpga_toolchain': fpga_toolchain,
         'fpga_size': fpga_size,
         'fpga_type': fpga_type,
         'fpga_pack': fpga_pack,
@@ -210,7 +210,7 @@ def process_arguments(args, resources):  # noqa
         'verbose_arachne': var_verbose.get('arachne')
     })
 
-    return variables, var_board, fpga_arch
+    return variables, var_board, fpga_toolchain
 
 
 def format_vars(args):
