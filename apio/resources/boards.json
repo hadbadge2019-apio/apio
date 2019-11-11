@@ -332,7 +332,19 @@
       "desc": "Lattice ECP5 Versa Board"
     }
   },
-  "SuperconBadge19": {
+  "hadbadge2019r2": {
+    "name": "Hackaday Superconference 2019 Badge (pre-release r2)",
+    "fpga": "ECP5-LFE5U-45F-CABGA381",
+    "programmer": {
+      "type": "dfu-util",
+      "extra_args": "-a 'ECP5 bitstream (SoC)' -R"
+    },
+    "usb": {
+      "vid": "1d50",
+      "pid": "614b"
+    }
+  },
+  "hadbage2019": {
     "name": "Hackaday Superconference 2019 Badge",
     "fpga": "ECP5-LFE5U-45F-CABGA381",
     "programmer": {
